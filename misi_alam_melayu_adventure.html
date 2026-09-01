@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Misi Alam Melayu: Legenda 3 Penjaga</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#091713;font-family:Arial,sans-serif;color:#fff;overflow:hidden}
+#game{position:relative;width:100vw;height:100vh;min-height:650px;overflow:hidden;background:#6fbf65}
+#world{position:absolute;inset:0;background:
+radial-gradient(circle at 10% 15%,#a9df77 0 2px,transparent 3px),
+radial-gradient(circle at 65% 50%,#a9df77 0 2px,transparent 3px),
+repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 2px,transparent 2px 50px),
+repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 2px,transparent 2px 50px),#71bf65}
+#hud,#mission{position:absolute;z-index:20;background:rgba(5,16,12,.88);border:2px solid #e5bd68;border-radius:10px;padding:12px 16px}
+#hud{top:15px;left:15px;line-height:1.6} #mission{top:15px;right:15px;max-width:370px;text-align:right}
+#player{position:absolute;width:42px;height:42px;border-radius:50%;background:#2164db;border:4px solid white;z-index:10;box-shadow:0 4px 0 #12336e}
+#player:before{content:"⚔️";position:absolute;left:7px;top:6px;font-size:22px}
+.tree{position:absolute;width:68px;height:68px;border-radius:50%;background:#237443;border:6px solid #15512c;box-shadow:0 25px 0 -14px #70451f}
+.water{position:absolute;background:#2d91c7;border:4px solid #175a82;border-radius:50px}
+.wall{position:absolute;background:#77502d;border:4px solid #442a16;border-radius:8px}
+.character{position:absolute;width:54px;height:54px;border-radius:50%;border:4px solid white;z-index:5;display:flex;align-items:center;justify-content:center;font-size:29px;box-shadow:0 5px 0 rgba(0,0,0,.3)}
+.character .tag{position:absolute;top:-32px;white-space:nowrap;background:#102019;border:1px solid #e5bd68;padding:4px 8px;border-radius:6px;font-size:12px}
+#pedagang{background:#9b603c} #ulama{background:#724db0} #batu{background:#c9aa75}
+.enemy{position:absolute;width:48px;height:48px;border-radius:50%;background:#9b2929;border:4px solid #581515;z-index:4;display:flex;align-items:center;justify-content:center;font-size:23px}
+#prompt{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);z-index:30;background:#08120e;border:2px solid #e5bd68;border-radius:10px;padding:12px 20px;display:none;font-weight:bold}
+#dialogue,#start,#win,#lose{position:absolute;inset:0;z-index:50;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:20px}
+#start{display:flex;background:rgba(4,15,11,.92)}
+.card{width:min(700px,95vw);background:#f7ecd4;color:#17251f;border:5px solid #e5bd68;border-radius:18px;padding:28px;text-align:center;box-shadow:0 10px 50px #000}
+.card h1{color:#77451d;margin-top:0;font-size:clamp(30px,5vw,58px)}
+.answers{display:grid;gap:10px;margin-top:18px;text-align:left}
+button{padding:14px;border:2px solid #74461f;border-radius:9px;background:#fff9ec;font-size:16px;cursor:pointer}
+button:hover{background:#ead29a}
+.big{background:#d9ad54;font-weight:bold;padding:15px 30px}
+#feedback{font-weight:bold;margin-top:14px;min-height:25px}
+.keys{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:18px}
+.key{padding:7px 11px;border:1px solid #e5bd68;border-radius:6px;background:#0b1b15}
+#miniMap{position:absolute;bottom:15px;right:15px;width:170px;height:120px;background:rgba(6,18,13,.85);border:2px solid #e5bd68;border-radius:8px;z-index:20;padding:8px;font-size:11px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin:4px}
+@media(max-width:700px){#mission{display:none}#miniMap{display:none}}
+</style>
+</head>
+<body>
+<div id="game"><div id="world">
+
+<div class="water" style="left:2%;top:68%;width:270px;height:120px"></div>
+<div class="water" style="right:2%;top:5%;width:280px;height:115px"></div>
+<div class="wall" style="left:36%;top:30%;width:25%;height:35px"></div>
+<div class="wall" style="left:55%;top:55%;width:35px;height:25%"></div>
+
+<div class="tree" style="left:7%;top:10%"></div><div class="tree" style="left:17%;top:20%"></div>
+<div class="tree" style="left:82%;top:28%"></div><div class="tree" style="left:75%;top:70%"></div>
+<div class="tree" style="left:35%;top:78%"></div><div class="tree" style="left:6%;top:45%"></div>
+
+<div id="pedagang" class="character" style="left:19%;top:40%"><span class="tag">Pedagang Gujarat</span>🧔</div>
+<div id="ulama" class="character" style="left:68%;top:37%"><span class="tag">Ulama Nusantara</span>🧙</div>
+<div id="batu" class="character" style="left:74%;top:75%"><span class="tag">Batu Bersurat</span>🪨</div>
+
+<div class="enemy" id="enemy1" style="left:42%;top:68%">👹</div>
+<div class="enemy" id="enemy2" style="left:85%;top:50%">👹</div>
+<div class="enemy" id="enemy3" style="left:30%;top:15%">👹</div>
+
+<div id="player"></div>
+</div>
+
+<div id="hud">❤️ Nyawa: <span id="hearts">❤️❤️❤️</span><br>⭐ Pengetahuan: <span id="score">0/3</span></div>
+<div id="mission">🎯 <b>MISI</b><br><span id="missionText">Cari Pedagang Gujarat.</span></div>
+<div id="prompt">Tekan <b>E</b> untuk berinteraksi</div>
+<div id="miniMap">🗺️ <b>PETA MISI</b><br>
+<span class="dot" style="background:#2164db"></span> Kau
+<span class="dot" style="background:#9b603c"></span> Pedagang<br>
+<span class="dot" style="background:#724db0"></span> Ulama
+<span class="dot" style="background:#c9aa75"></span> Bukti</div>
+
+<div id="dialogue"><div class="card"><h2 id="title"></h2><p id="question"></p><div id="answers" class="answers"></div><div id="feedback"></div></div></div>
+
+<div id="start"><div class="card">
+<h1>⚔️ MISI ALAM MELAYU</h1>
+<h2>Legenda Tiga Penjaga</h2>
+<p>Terokai kampung, elakkan penjaga gelap 👹 dan kumpulkan tiga pengetahuan sejarah.</p>
+<div class="keys"><span class="key">W ↑</span><span class="key">A ←</span><span class="key">S ↓</span><span class="key">D →</span><span class="key">E INTERACT</span></div>
+<button class="big" onclick="startGame()">MULAKAN ADVENTURE ▶</button>
+</div></div>
+
+<div id="win"><div class="card"><h1>🏆 LEGENDA SELESAI!</h1><h2>Kau berjaya melepasi tiga penjaga ilmu.</h2><p>Kedatangan Islam ke Alam Melayu lebih tepat difahami sebagai proses kompleks yang melibatkan pelbagai jaringan perdagangan, dakwah dan hubungan masyarakat.</p><button class="big" onclick="location.reload()">MAIN SEMULA ↻</button></div></div>
+<div id="lose"><div class="card"><h1>💀 MISI GAGAL</h1><p>Nyawa kau habis akibat penjaga gelap!</p><button class="big" onclick="location.reload()">CUBA SEMULA</button></div></div>
+</div>
+
+<script>
+const game=document.getElementById('game'),player=document.getElementById('player');
+let x=80,y=520,keys={},running=false,locked=false,mission=0,hearts=3;
+let lastHit=0;
+const targets=['pedagang','ulama','batu'];
+const questions=[
+{title:'📜 PENJAGA 1: PEDAGANG',q:'Teori manakah mengaitkan kedatangan Islam ke Alam Melayu dengan pedagang Muslim dari Gujarat?',o:['Teori China','Teori India / Gujarat','Teori Arab'],a:1,next:'Cari Ulama Nusantara.'},
+{title:'📖 PENJAGA 2: ULAMA',q:'Selain perdagangan, apakah faktor yang penting dalam proses Islamisasi Alam Melayu?',o:['Dakwah dan jaringan ulama','Media sosial','Teknologi moden'],a:0,next:'Cari Batu Bersurat Terengganu.'},
+{title:'🪨 PENJAGA 3: BATU BERSURAT',q:'Mengapakah Batu Bersurat Terengganu penting dalam sejarah Islam di Alam Melayu?',o:['Bukti awal perkembangan Islam dan tulisan Jawi','Dibina sebagai istana','Bukti penjajahan Eropah'],a:0,next:''}
+];
+function update(){x=Math.max(0,Math.min(game.clientWidth-42,x));y=Math.max(0,Math.min(game.clientHeight-42,y));player.style.left=x+'px';player.style.top=y+'px'}
+function startGame(){document.getElementById('start').style.display='none';running=true;update();requestAnimationFrame(loop)}
+function loop(){
+if(running&&!locked){
+let sp=4.5;if(keys.w)y-=sp;if(keys.s)y+=sp;if(keys.a)x-=sp;if(keys.d)x+=sp;update();checkTarget();checkEnemies();
+}
+requestAnimationFrame(loop)}
+function center(el){let r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function checkTarget(){
+if(mission>=3)return;
+let t=document.getElementById(targets[mission]);
+document.getElementById('prompt').style.display=dist(center(player),center(t))<78?'block':'none';
+}
+function checkEnemies(){
+const now=Date.now();if(now-lastHit<1200)return;
+for(const e of document.querySelectorAll('.enemy')){
+ if(dist(center(player),center(e))<43){lastHit=now;hearts--;document.getElementById('hearts').textContent='❤️'.repeat(Math.max(0,hearts))+'🖤'.repeat(3-Math.max(0,hearts));
+ player.style.filter='brightness(3)';
+ setTimeout(()=>player.style.filter='',250);
+ if(hearts<=0){running=false;document.getElementById('lose').style.display='flex'}
+ break;
+ }}
+}
+window.addEventListener('keydown',e=>{let k=e.key.toLowerCase();keys[k]=true;if(k==='e'&&!locked&&mission<3&&dist(center(player),center(document.getElementById(targets[mission])))<78)openQ()});
+window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+function openQ(){locked=true;document.getElementById('prompt').style.display='none';let z=questions[mission];document.getElementById('dialogue').style.display='flex';document.getElementById('title').textContent=z.title;document.getElementById('question').textContent=z.q;let a=document.getElementById('answers');a.innerHTML='';document.getElementById('feedback').textContent='';z.o.forEach((v,i)=>{let b=document.createElement('button');b.textContent=String.fromCharCode(65+i)+'. '+v;b.onclick=()=>checkAnswer(i,z);a.appendChild(b)})}
+function checkAnswer(i,z){
+let f=document.getElementById('feedback');
+if(i===z.a){f.style.color='#137336';f.textContent='✅ BETUL! Pengetahuan diperoleh.';setTimeout(()=>{document.getElementById('dialogue').style.display='none';mission++;document.getElementById('score').textContent=mission+'/3';locked=false;if(mission<3)document.getElementById('missionText').textContent=z.next;else{running=false;document.getElementById('win').style.display='flex'}},900)}
+else{hearts--;document.getElementById('hearts').textContent='❤️'.repeat(Math.max(0,hearts))+'🖤'.repeat(3-Math.max(0,hearts));f.style.color='#a71919';f.textContent='❌ Salah! Cuba lagi — jawapan salah mengurangkan nyawa.';if(hearts<=0)setTimeout(()=>{running=false;document.getElementById('dialogue').style.display='none';document.getElementById('lose').style.display='flex'},800)}
+}
+</script>
+</body></html>
